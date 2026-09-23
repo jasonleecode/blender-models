@@ -1,0 +1,18 @@
+{
+  "objects": 1373,
+  "meshes": 1352,
+  "materials": 37,
+  "scenes": [
+    "01 外观 · Exterior",
+    "02 一楼拆顶 · Ground cutaway",
+    "03 二楼拆顶 · Upper cutaway",
+    "04 大雄房间 · Nobita room",
+    "05 一楼俯视 · Ground plan",
+    "06 二楼俯视 · Upper plan"
+  ],
+  "unit": "metres",
+  "ground_floor_level": 0.55,
+  "upper_floor_level": 3.45,
+  "reference": "LIFULL HOMES pre-2005 inferred plan",
+  "dimensions_are_assumed": true
+}

@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "blender": "5.1.0",
+  "scenes": 6,
+  "objects": 1373,
+  "renders": 6,
+  "font_packed": true
+}

@@ -7,12 +7,21 @@
 | 模型 | 内容 | Blender 版本 |
 | --- | --- | --- |
 | [林间三角屋 · PINE / 02](models/forest-cabin/) | 两层 A 字形林间小屋，含室内、楼梯、阳台、露台及松林 | 5.1 |
+| [大雄家 · 经典动画版](models/nobita-house/) | 两层日式住宅，含院落、室内家具、可拆屋顶和六个查看场景 | 5.1 |
 
 ### 林间三角屋 · PINE / 02
 
 ![林间三角屋全景](models/forest-cabin/林间三角屋_全景.png)
 
 [模型与使用说明](models/forest-cabin/) · [下载 .blend 文件](models/forest-cabin/林间三角屋.blend) · [建筑特写](models/forest-cabin/林间三角屋_建筑特写.png) · [两层剖视](models/forest-cabin/林间三角屋_两层剖视.png)
+
+### 大雄家 · 经典动画版
+
+![大雄家住宅外观](models/nobita-house/01_住宅外观.png)
+
+[模型与使用说明](models/nobita-house/) · [下载 .blend 文件](models/nobita-house/大雄家_经典版.blend) · [一楼拆顶](models/nobita-house/02_一楼拆顶.png) · [二楼拆顶](models/nobita-house/03_二楼拆顶.png) · [大雄房间](models/nobita-house/04_大雄房间.png)
+
+按旧版动画风格参考还原，尺寸与部分布局为建模假设，非官方精确户型。
 
 ## 使用
 
