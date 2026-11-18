@@ -150,7 +150,7 @@ for i in range(32): cube('Ground floor oak boards',(-3.45+i*.22,0,1.104),(.212,7
 
 # A-frame: 7.6 m span, 7.4 m rise above the deck; clear two-storey interior.
 for y in [-4.03,-1.35,1.35,4.03]:
-    for side in [-1,1]: beam('Larch A-frame rafter',(side*3.78,y,.91),(0,y,8.34),.23,timber,.28)
+    for side in [-1,1]: beam('Larch A-frame rafter',(side*3.66,y,.91),(0,y,8.14),.23,timber,.28)
     beam('Upper level tie beam',(-2.14,y,4.18),(2.14,y,4.18),.24,timber)
 beam('Ridge beam',(0,-4.3,8.32),(0,4.3,8.32),.24,timber)
 
@@ -210,7 +210,10 @@ beam('Bedroom door center',(0,-4.15,4.3),(0,-4.15,6.34),.065,black)
 active=deck
 for x in [-3.8,0,3.8]:
     for y in [-6.4,-4.5]: cube('Deck pier',(x,y,.4),(.35,.35,.8),stone,.025)
-for i in range(42): cube('Terrace board',(-4.12+i*.20,-5.29,.995),(.19,3.05,.16),plankmats[i%5],.014)
+for i in range(42):
+    x=-4.12+i*.20
+    rear=-4.46 if abs(x)>3.55 else -3.765
+    cube('Terrace board',(x,(rear-6.815)/2,.995),(.19,rear+6.815,.16),plankmats[i%5],.014)
 cube('Terrace front fascia',(0,-6.83,.85),(8.45,.15,.30),timber,.02)
 for i in range(3):
     z=.19+i*.25; y=-7.88+i*.38
@@ -218,13 +221,13 @@ for i in range(3):
     for j in range(2): cube('Step tread',(0,y-.105+j*.21,z+.025),(2.69,.2,.055),plankmats[3],.008)
 cube('Upper balcony cantilever',(0,-4.77,4.18),(3.66,1.50,.18),timber,.025)
 for i in range(18): cube('Balcony cedar board',(-1.70+i*.2,-4.77,4.29),(.192,1.5,.055),plankmats[i%5],.006)
-for x in [-1.82,1.82]:
+for x in [-1.49,1.49]:
     beam('Balcony side handrail',(x,-5.50,5.30),(x,-4.06,5.30),.055,black)
     for y in [-5.50,-4.10]: beam('Balcony post',(x,y,4.29),(x,y,5.30),.055,black)
     for y in [-5.3,-5.1,-4.9,-4.7,-4.5,-4.3]: beam('Balcony side spindle',(x,y,4.34),(x,y,5.28),.022,black)
-beam('Balcony top handrail',(-1.84,-5.50,5.30),(1.84,-5.50,5.30),.065,timber)
-beam('Balcony lower rail',(-1.82,-5.50,4.36),(1.82,-5.50,4.36),.045,black)
-for i in range(19): beam('Balcony front spindle',(-1.8+i*.2,-5.50,4.36),(-1.8+i*.2,-5.50,5.29),.022,black)
+beam('Balcony top handrail',(-1.51,-5.50,5.30),(1.51,-5.50,5.30),.065,timber)
+beam('Balcony lower rail',(-1.49,-5.50,4.36),(1.49,-5.50,4.36),.045,black)
+for i in range(19): beam('Balcony front spindle',(-1.47+i*(2.94/18),-5.50,4.36),(-1.47+i*(2.94/18),-5.50,5.29),.022,black)
 for side in [-1,1]: beam('Balcony timber brace',(side*1.64,-4.04,3.02),(side*1.64,-5.28,4.10),.13,timber)
 
 # Compact interior: sofa, wool rug, round table, kitchenette and wood stove.
@@ -279,11 +282,11 @@ cube('Duvet',(-.30,-.33,4.95),(1.82,1.64,.19),cream,.12)
 cube('Forest green bed throw',(-.30,-.79,5.05),(1.84,.62,.065),sage,.035)
 cube('Timber headboard',(-.30,1.21,4.99),(1.96,.13,1.12),timber,.035)
 for x in [-.76,.15]: cube('Bed pillow',(x,.73,5.015),(.73,.48,.17),cream,.1)
-cylinder('Bedside table',(-1.59,.96,4.67),.29,.69,timber)
-cylinder('Bedside ceramic lamp',(-1.59,.96,5.11),.12,.22,rust)
-bpy.ops.mesh.primitive_cone_add(vertices=32,radius1=.22,radius2=.15,depth=.26,location=(-1.59,.96,5.33))
+cylinder('Bedside table',(-1.28,1.85,4.67),.29,.69,timber)
+cylinder('Bedside ceramic lamp',(-1.28,1.85,5.11),.12,.22,rust)
+bpy.ops.mesh.primitive_cone_add(vertices=32,radius1=.22,radius2=.15,depth=.26,location=(-1.28,1.85,5.33))
 finish(bpy.context.object,'Linen lamp shade',cream)
-cube('Bedroom rear storage',(-.5,3.59,4.81),(2.85,.53,1.03),oak,.025)
+cube('Bedroom rear storage',(-.14,3.59,4.81),(2.85,.53,1.03),oak,.025)
 
 # Outdoor lounge chairs with slatted backs and a small table.
 active=deck
