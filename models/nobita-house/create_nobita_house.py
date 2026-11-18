@@ -32,6 +32,18 @@ def mat(name,c,rough=.65,metal=0):
     return m
 cream=mat('Warm butter plaster',(.87,.75,.49));white=mat('Warm porcelain',(.94,.9,.77));wood=mat('Dark cedar trim',(.23,.115,.065));oak=mat('Honey oak',(.59,.33,.13))
 red=mat('Vermilion roof',(.52,.07,.045));rededge=mat('Roof raised seams',(.68,.12,.055));glass=mat('Soft blue glazing',(.30,.58,.69),.24,.1)
+window_glass = mat('Clear window glass', (.98,.995,1), .035)
+# A thin pane passes light straight through and retains a faint reflection.
+nodes = window_glass.node_tree.nodes
+links = window_glass.node_tree.links
+clear = nodes.new('ShaderNodeBsdfTransparent')
+reflection = nodes.new('ShaderNodeBsdfGlossy')
+reflection.inputs['Roughness'].default_value = .04
+mix = nodes.new('ShaderNodeMixShader')
+mix.inputs[0].default_value = .025
+links.new(clear.outputs[0], mix.inputs[1])
+links.new(reflection.outputs[0], mix.inputs[2])
+links.new(mix.outputs[0], nodes.get('Material Output').inputs['Surface'])
 curtain=mat('Nobita blue curtains',(.075,.40,.71));tatamis=[mat('Tatami straw '+str(i),(.49+i*.027,.56+i*.017,.29+i*.014)) for i in range(4)]
 binding=mat('Tatami dark green binding',(.16,.24,.16));pale=mat('Shoji rice paper',(.90,.86,.67));sofa=mat('Ochre upholstery',(.57,.32,.10));pink=mat('Pink zabuton',(.69,.26,.30))
 gray=mat('Concrete block wall',(.52,.55,.51));stone=mat('Paving',(.7,.7,.62));grass=mat('Lawn',(.28,.46,.16));earth=mat('Garden cut earth',(.22,.17,.11));black=mat('Charcoal',(.055,.068,.063));steel=mat('Brushed metal',(.47,.53,.5),.3,.55)
@@ -76,7 +88,7 @@ def window(n,x,y,z,width=2,height=1.4,side=False,col=None):
     global active
     old=active;active=col or active
     def b(nn,u,v,h,du,dv,dh,m):return box(n+nn,(x+v if side else x+u,y+u if side else y+v,z+h),(dv if side else du,du if side else dv,dh),m,.012)
-    b(' blue panes',0,0,0,width,.055,height,glass)
+    b(' clear panes',0,0,0,width,.012,height,window_glass).display_type = 'WIRE'
     for u in [-width/2,0,width/2]:b(' mullion',u,-.035,0,.055,.095,height+.12,wood)
     for h in [-height/2,0,height/2]:b(' frame',0,-.035,h,width+.12,.095,.055,wood)
     b(' sill',0,-.08,-height/2-.05,width+.23,.23,.08,oak)
@@ -156,15 +168,131 @@ text('Nobi nameplate','野\n比',(8.749,2.12,1.37),.17,black,(math.pi/2,0,math.p
 box('Mailbox',(8.68,4.23,1.19),(.36,.34,.26),red,.035)
 for x in [6.7,7.35,8.0]:box('Entry stepping stone',(x,3.15,.13),(.56,.9,.12),stone,.08)
 for i in range(8):box('Garden stepping stone',(5.0-i*.9,-4.4,.11),(.66,.48,.11),stone,.09)
-def bush(x,y,z=0,s=1):
-    for i in range(5):ball('Shrub foliage',(x+random.uniform(-.45,.45)*s,y+random.uniform(-.35,.35)*s,z+.65*s),(.53*s,.47*s,.56*s),random.choice(leaf))
-for x,y,s in [(-7,-4,1.25),(-7,2,1),(6,-5.8,.9),(2,-5.8,.7),(-2,-5.7,.8),(-7,5.5,1.2),(7,5.5,.8)]:bush(x,y,s=s)
-for x,y in [(-6.8,-4.5),(-7.0,4.7)]:
-    cyl('Garden tree trunk',(x,y,1.5),.16,3,wood)
-    for i in range(10):ball('Tree canopy',(x+random.uniform(-.8,.8),y+random.uniform(-.8,.8),3+random.uniform(-.15,1)),(.9,.8,.9),random.choice(leaf))
-for y in [-3.0,-2.2,-1.4]:
-    cyl('Flower pot',(7.75,y,.24),.21,.4,red);bush(7.75,y,.20,.38)
+def landscape_lawn():
+    nodes = grass.node_tree.nodes
+    links = grass.node_tree.links
+    shader = next(node for node in nodes if node.type == 'BSDF_PRINCIPLED')
+    coords = nodes.new('ShaderNodeTexCoord')
+    patches = nodes.new('ShaderNodeTexNoise')
+    patches.inputs['Scale'].default_value = 2.2
+    patches.inputs['Detail'].default_value = 4
+    links.new(coords.outputs['Object'], patches.inputs['Vector'])
+    palette = nodes.new('ShaderNodeValToRGB')
+    meadow = [(.035,.09,.012), (.075,.20,.026), (.18,.30,.055)]
+    for stop, color in zip([palette.color_ramp.elements[0], palette.color_ramp.elements.new(.53),
+                            palette.color_ramp.elements[-1]], meadow):
+        stop.color = (*color,1)
+    grass.diffuse_color = (*meadow[1],1)
+    links.new(patches.outputs['Fac'], palette.inputs['Fac'])
+    links.new(palette.outputs['Color'], shader.inputs['Base Color'])
+    grain = nodes.new('ShaderNodeTexNoise')
+    grain.inputs['Scale'].default_value = 82
+    links.new(coords.outputs['Object'], grain.inputs['Vector'])
+    bump = nodes.new('ShaderNodeBump')
+    bump.inputs['Distance'].default_value = .012
+    bump.inputs['Strength'].default_value = .24
+    links.new(grain.outputs['Fac'], bump.inputs['Height'])
+    links.new(bump.outputs['Normal'], shader.inputs['Normal'])
 
+    obstacles = [(-4.42,4.42,-3.23,3.92), (-6.42,-3.0,1,5.42),
+                 (4.0,7.42,-2.22,2.42), (4.0,6.42,2,4.32)]
+    for o in active.objects:
+        if 'stepping stone' in o.name:
+            x,y,_ = o.location
+            dx,dy,_ = o.dimensions
+            obstacles.append((x-dx/2-.06,x+dx/2+.06,y-dy/2-.06,y+dy/2+.06))
+    rng = random.Random(410)
+    verts, faces, shades = [], [], []
+    for _ in range(23000):
+        x,y = rng.uniform(-8.54,8.34),rng.uniform(-6.34,6.34)
+        if any(l<x<r and b<y<t for l,r,b,t in obstacles):
+            continue
+        for blade in range(4):
+            a = rng.uniform(0,math.tau)
+            dx,dy = math.cos(a),math.sin(a)
+            bx,by = x+dx*.015,y+dy*.015
+            h,w = rng.uniform(.032,.085),rng.uniform(.005,.012)
+            i = len(verts)
+            verts.extend([(bx-dy*w,by+dx*w,.089),(bx+dy*w,by-dx*w,.089),
+                          (bx+dx*h*.55,by+dy*h*.55,.089+h)])
+            faces.append((i,i+1,i+2))
+            shades.append(rng.randrange(3))
+    blades = mesh('Short garden grass',verts,faces,mat('Grass blade deep',meadow[0]))
+    for name,color in zip(['Grass blade green','Grass blade sunlit'],meadow[1:]):
+        blades.data.materials.append(mat(name,color))
+    blades.data.polygons.foreach_set('material_index', shades)
+
+landscape_lawn()
+
+garden_rng = random.Random(1979)
+
+def garden_plant(name, origin, height, spread):
+    rng = garden_rng
+    branches = bpy.data.curves.new(name + ' branches', 'CURVE')
+    branches.dimensions = '3D'
+    branches.bevel_depth = 1
+    branches.bevel_resolution = 2
+    trunk = bpy.data.objects.new(name + ' branches', branches)
+    active.objects.link(trunk)
+    trunk.location = origin
+    branches.materials.append(wood)
+    verts, faces, tones = [], [], []
+
+    def limb(points, radii):
+        spline = branches.splines.new('POLY')
+        spline.points.add(len(points)-1)
+        for point, pos, radius in zip(spline.points, points, radii):
+            point.co = (*pos, 1)
+            point.radius = radius
+
+    def spray(start, angle, length):
+        direction = Vector((math.cos(angle), math.sin(angle), rng.uniform(-.3,.65)))
+        tip = start + direction * length
+        limb([start, tip], [.009*height, .001*height])
+        for j in range(9):
+            base = start.lerp(tip, (j+1)/10)
+            for side in (-1, 1):
+                a = angle + side*rng.uniform(.55,1.35)
+                size = rng.uniform(.10,.16)*spread**.5
+                axis = Vector((math.cos(a), math.sin(a), rng.uniform(-.65,.35)))*size
+                width = Vector((-math.sin(a), math.cos(a), rng.uniform(-.25,.25)))*size*.30
+                mid = base + axis*.48
+                i = len(verts)
+                verts.extend([base, mid+width, mid+Vector((0,0,size*.10)), mid-width, base+axis])
+                faces.extend([(i,i+1,i+2),(i,i+2,i+3),(i+1,i+4,i+2),(i+2,i+4,i+3)])
+                tones.extend([rng.randrange(len(leaf))]*4)
+
+    lean = Vector((rng.uniform(-.14,.14)*spread, rng.uniform(-.18,.18)*spread, height))
+    limb([lean*0, lean*.42, lean], [.038*height,.028*height,.002*height])
+    for i in range(22):
+        t = .24 + .72*i/22
+        a = i*2.4 + rng.uniform(-.32,.32)
+        reach = spread*(1-t)**.48*rng.uniform(.75,1.18)
+        outward = Vector((math.cos(a)*reach, math.sin(a)*reach, height*(1-t)*.41))
+        root = lean*t
+        fork = root + outward*.53
+        fork.z -= height*.035
+        limb([root, fork, root+outward], [.019*height*(1-t)**.5,.012*height,.003*height])
+        for j in range(7):
+            base = fork.lerp(root+outward,j/7)
+            b = a + (-1 if j%2 else 1)*rng.uniform(.45,1.35)
+            end = base + Vector((math.cos(b)*spread*.28, math.sin(b)*spread*.28, height*rng.uniform(.035,.12)))
+            limb([base,end],[.006*height,.002*height])
+            for k in range(4):
+                spray(base.lerp(end,(k+1)/4), b+rng.uniform(-1.7,1.7), spread*rng.uniform(.20,.38))
+    crown = mesh(name + ' leaves',verts,faces,leaf[0])
+    crown.location = origin
+    for material in leaf[1:]:
+        crown.data.materials.append(material)
+    crown.data.polygons.foreach_set('material_index', tones)
+
+for x,y,s in [(-7,-4,1.25),(-7,2,1),(6,-5.8,.9),(2,-5.8,.7),(-2,-5.7,.8),(-7,5.5,1.2),(7,5.5,.8)]:
+    garden_plant('Garden shrub',(x,y,.08),s,.74*s)
+for x,y,h,w in [(-6.8,-4.5,4.35,1.42),(-7,4.7,4.65,1.3)]:
+    garden_plant('Garden tree',(x,y,.08),h,w)
+for y in [-3.0,-2.2,-1.4]:
+    cyl('Flower pot',(7.75,y,.24),.21,.4,red)
+    garden_plant('Potted shrub',(7.75,y,.39),.47,.29)
 # Ground floor. Z=.55 finished floor; upstairs Z=3.45.
 active=f1;z=.55;H=2.72
 for n,x,y,w,d in [('Core',0,-.9,8.4,4.2),('Kitchen',-4.65,3.2,3.1,4),('Wet rooms',.55,2.45,7.3,2.5),('Reception',5.7,.1,3,4.2),('Entry',5.2,3.15,2,1.9)]:
@@ -344,6 +472,17 @@ s2=newscene('03 二楼拆顶 · Upper cutaway',uppercam,[site,f1,w1,roof,cut2,la
 s3=newscene('04 大雄房间 · Nobita room',roomcam,[site,f1,w1,roof,cut2,w2,lab1,lab2],(1500,1400))
 s4=newscene('05 一楼俯视 · Ground plan',plan1,[f2,w2,cut2,roof,w1,lab2,site],(1500,1250))
 s5=newscene('06 二楼俯视 · Upper plan',plan2,[site,f1,w1,roof,cut2,w2,lab1],(1500,1000))
+# Soft interior bounce for the exterior camera, linked only to this scene.
+for label, position in [('Living',(2,-1.4,3.04)), ('Parents',(-2.4,-1.4,3.04)),
+                        ('Reception',(5.9,.2,3.04)), ('Kitchen',(-4.7,3.2,3.04)),
+                        ('Study',(2.25,-1.4,5.97)), ('Spare',(-2.35,-1.4,5.97))]:
+    lamp = bpy.data.lights.new(label + ' interior fill', 'AREA')
+    lamp.energy = 175
+    lamp.shape = 'DISK'
+    lamp.size = 1.7
+    obj = bpy.data.objects.new(lamp.name, lamp)
+    obj.location = position
+    scene.collection.objects.link(obj)
 for screen in bpy.data.screens:
     for a in screen.areas:
         if a.type=='VIEW_3D':a.spaces.active.region_3d.view_perspective='CAMERA';a.spaces.active.clip_end=200
