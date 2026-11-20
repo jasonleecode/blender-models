@@ -6,8 +6,15 @@
 
 | 模型 | 内容 | Blender 版本 |
 | --- | --- | --- |
+| [秋林溪畔](models/autumn-creek/) | 根据照片还原的秋林原木小屋、营地与浅溪 | 5.1 |
 | [林间三角屋 · PINE / 02](models/forest-cabin/) | 两层 A 字形林间小屋，含室内、楼梯、阳台、露台及松林 | 5.1 |
 | [大雄家 · 经典动画版](models/nobita-house/) | 两层日式住宅，含院落、室内家具、可拆屋顶和六个查看场景 | 5.1 |
+
+### 秋林溪畔
+
+![秋林溪畔相机渲染](models/autumn-creek/秋林溪畔.png)
+
+[模型与使用说明](models/autumn-creek/) · [下载 .blend 文件](models/autumn-creek/秋林溪畔.blend)
 
 ### 林间三角屋 · PINE / 02
 
